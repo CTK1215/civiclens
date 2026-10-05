@@ -1,77 +1,69 @@
+const Issue = require('../models/Issue');
 const { badRequest, notFound } = require('../middleware/errorHandler');
 
-// Phase 1: issues live in memory and reset every time the server restarts.
-// Phase 2 replaces this array with the Sequelize Issue model.
-// Shape: { id, title, description, category, status, createdAt }
-const issues = [];
-let nextId = 1;
-
-// Where an issue sits in the array, or -1. The id arrives as text in the URL, so it is
-// converted before comparing; anything that is not a number simply will not match.
-const findIndexById = (id) => issues.findIndex((issue) => issue.id === Number(id));
+// Postgres integer ids top out here. Anything bigger would error instead of 404ing.
+const MAX_ID = 2147483647;
 
 // A required text field has to be a string with something other than spaces in it.
 const hasText = (value) => typeof value === 'string' && value.trim() !== '';
 
+// The id arrives as text in the URL. Only a whole number in range can match a row,
+// so anything else resolves to null (a 404) without touching the database.
+const findIssue = async (id) => {
+  if (!/^\d+$/.test(id) || Number(id) > MAX_ID) return null;
+  return Issue.findByPk(id);
+};
+
 // GET /issues
 // 200 with every issue. Optional filters: ?category=pothole&status=open
-const getAllIssues = (req, res) => {
+const getAllIssues = async (req, res) => {
   const { category, status } = req.query;
+  const where = {};
 
-  let results = issues;
+  if (category) where.category = category;
+  if (status) where.status = status;
 
-  if (category) {
-    results = results.filter((issue) => issue.category === category);
-  }
-
-  if (status) {
-    results = results.filter((issue) => issue.status === status);
-  }
-
-  res.status(200).json(results);
+  const issues = await Issue.findAll({ where });
+  res.status(200).json(issues);
 };
 
 // GET /issues/:id
 // 200 with the issue, 404 if no issue has that id
-const getIssueById = (req, res) => {
-  const index = findIndexById(req.params.id);
+const getIssueById = async (req, res) => {
+  const issue = await findIssue(req.params.id);
 
-  if (index === -1) {
+  if (!issue) {
     return notFound(res, `No issue with id ${req.params.id}`);
   }
 
-  res.status(200).json(issues[index]);
+  res.status(200).json(issue);
 };
 
 // POST /issues
 // title and description are required (400 if missing).
-// Set id, status (default "open") and createdAt on the server, then 201 with the new issue.
-const createIssue = (req, res) => {
+// The model sets id, status (default "open"), votes (default 0) and createdAt, then 201.
+const createIssue = async (req, res) => {
   const { title, description, category } = req.body || {};
 
   if (!hasText(title) || !hasText(description)) {
     return badRequest(res, 'title and description are required');
   }
 
-  const issue = {
-    id: nextId++,
+  const issue = await Issue.create({
     title: title.trim(),
     description: description.trim(),
     category: hasText(category) ? category.trim() : 'other',
-    status: 'open',
-    createdAt: new Date().toISOString(),
-  };
+  });
 
-  issues.push(issue);
   res.status(201).json(issue);
 };
 
 // PUT /issues/:id
 // 404 if not found, 400 if title or description is missing, 200 with the updated issue
-const updateIssue = (req, res) => {
-  const index = findIndexById(req.params.id);
+const updateIssue = async (req, res) => {
+  const issue = await findIssue(req.params.id);
 
-  if (index === -1) {
+  if (!issue) {
     return notFound(res, `No issue with id ${req.params.id}`);
   }
 
@@ -81,29 +73,26 @@ const updateIssue = (req, res) => {
     return badRequest(res, 'title and description are required');
   }
 
-  const existing = issues[index];
-  const updated = {
-    ...existing,
+  await issue.update({
     title: title.trim(),
     description: description.trim(),
-    category: hasText(category) ? category.trim() : existing.category,
-    status: hasText(status) ? status.trim() : existing.status,
-  };
+    category: hasText(category) ? category.trim() : issue.category,
+    status: hasText(status) ? status.trim() : issue.status,
+  });
 
-  issues[index] = updated;
-  res.status(200).json(updated);
+  res.status(200).json(issue);
 };
 
 // DELETE /issues/:id
 // 404 if not found, 204 with no body once removed
-const deleteIssue = (req, res) => {
-  const index = findIndexById(req.params.id);
+const deleteIssue = async (req, res) => {
+  const issue = await findIssue(req.params.id);
 
-  if (index === -1) {
+  if (!issue) {
     return notFound(res, `No issue with id ${req.params.id}`);
   }
 
-  issues.splice(index, 1);
+  await issue.destroy();
   res.status(204).end();
 };
 

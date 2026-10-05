@@ -76,7 +76,7 @@ In development, Vite forwards any request to `/api/...` to the API with `/api` r
 ## Progress
 
 - [x] Phase 1: Express routes with in-memory data
-- [ ] Phase 2: PostgreSQL + Sequelize
+- [x] Phase 2: PostgreSQL + Sequelize
 - [ ] Phase 3: Authentication and protected routes
 - [ ] Phase 4: React front end
 - [ ] Phase 5: Docker deployment to AWS
