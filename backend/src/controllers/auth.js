@@ -9,6 +9,10 @@ const { badRequest } = require('../middleware/errorHandler');
 const SALT_ROUNDS = 12;
 const MIN_PASSWORD_LENGTH = 8;
 
+// Compared against when the email is unknown, so that case takes as long as a wrong password.
+// The password behind it is never used for a real account.
+const DUMMY_HASH = bcrypt.hashSync('not-a-real-password', SALT_ROUNDS);
+
 // A required text field has to be a string with something other than spaces in it.
 const hasText = (value) => typeof value === 'string' && value.trim() !== '';
 
@@ -57,10 +61,12 @@ const login = async (req, res) => {
   }
 
   const user = await User.findOne({ where: { email: normalizeEmail(email) } });
-  const matches = user && (await bcrypt.compare(password, user.password));
+
+  // bcrypt runs in both cases, so the response time doesn't reveal whether the email exists
+  const matches = await bcrypt.compare(password, user ? user.password : DUMMY_HASH);
 
   // Same message for "no such email" and "wrong password", so the response doesn't reveal which
-  if (!matches) {
+  if (!user || !matches) {
     return res.status(401).json({ error: 'Email or password is wrong' });
   }
 
