@@ -1,3 +1,5 @@
+const { badRequest } = require('../middleware/errorHandler');
+
 // Phase 1: issues live in memory and reset every time the server restarts.
 // Phase 2 replaces this array with the Sequelize Issue model.
 // Shape: { id, title, description, category, status, createdAt }
@@ -5,6 +7,9 @@ const issues = [];
 let nextId = 1;
 
 const notImplemented = (res) => res.status(501).json({ error: 'Not implemented yet' });
+
+// A required text field has to be a string with something other than spaces in it.
+const hasText = (value) => typeof value === 'string' && value.trim() !== '';
 
 // GET /issues
 // 200 with every issue. Optional filters: ?category=pothole&status=open
@@ -31,7 +36,25 @@ const getIssueById = (req, res) => notImplemented(res);
 // POST /issues
 // title and description are required (400 if missing).
 // Set id, status (default "open") and createdAt on the server, then 201 with the new issue.
-const createIssue = (req, res) => notImplemented(res);
+const createIssue = (req, res) => {
+  const { title, description, category } = req.body || {};
+
+  if (!hasText(title) || !hasText(description)) {
+    return badRequest(res, 'title and description are required');
+  }
+
+  const issue = {
+    id: nextId++,
+    title: title.trim(),
+    description: description.trim(),
+    category: hasText(category) ? category.trim() : 'other',
+    status: 'open',
+    createdAt: new Date().toISOString(),
+  };
+
+  issues.push(issue);
+  res.status(201).json(issue);
+};
 
 // PUT /issues/:id
 // 404 if not found, 400 if title or description is missing, 200 with the updated issue
