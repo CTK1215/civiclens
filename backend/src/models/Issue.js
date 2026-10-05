@@ -1,7 +1,8 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const User = require('./User');
 
-// One row per reported issue. Phase 3 adds a userId column for ownership checks.
+// One row per reported issue. userId is the account that created it.
 const Issue = sequelize.define(
   'Issue',
   {
@@ -10,11 +11,14 @@ const Issue = sequelize.define(
     category: { type: DataTypes.STRING, allowNull: false, defaultValue: 'other' },
     status: { type: DataTypes.STRING, allowNull: false, defaultValue: 'open' },
     votes: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    userId: { type: DataTypes.INTEGER, allowNull: false },
   },
   {
     // Keep the Phase 1 response shape: createdAt, no updatedAt
     updatedAt: false,
   }
 );
+
+Issue.belongsTo(User, { foreignKey: 'userId' });
 
 module.exports = Issue;

@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 
+const authRoutes = require('./routes/auth');
 const issueRoutes = require('./routes/issues');
 const { handleError } = require('./middleware/errorHandler');
 
@@ -13,6 +14,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+app.use('/auth', authRoutes);
 app.use('/issues', issueRoutes);
 
 // Anything that did not match a route above

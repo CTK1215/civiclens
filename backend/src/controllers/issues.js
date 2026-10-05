@@ -1,5 +1,5 @@
 const Issue = require('../models/Issue');
-const { badRequest, notFound } = require('../middleware/errorHandler');
+const { badRequest, notFound, forbidden } = require('../middleware/errorHandler');
 
 // Postgres integer ids top out here. Anything bigger would error instead of 404ing.
 const MAX_ID = 2147483647;
@@ -40,8 +40,8 @@ const getIssueById = async (req, res) => {
 };
 
 // POST /issues
-// title and description are required (400 if missing).
-// The model sets id, status (default "open"), votes (default 0) and createdAt, then 201.
+// Needs a logged-in user (requireAuth in the route). title and description are required (400 if missing).
+// The model sets id, status (default "open"), votes (default 0) and createdAt. userId is the logged-in user. 201.
 const createIssue = async (req, res) => {
   const { title, description, category } = req.body || {};
 
@@ -53,18 +53,24 @@ const createIssue = async (req, res) => {
     title: title.trim(),
     description: description.trim(),
     category: hasText(category) ? category.trim() : 'other',
+    userId: req.user.id,
   });
 
   res.status(201).json(issue);
 };
 
 // PUT /issues/:id
-// 404 if not found, 400 if title or description is missing, 200 with the updated issue
+// 404 if not found, 403 if the issue belongs to someone else, 400 if title or description is missing,
+// 200 with the updated issue
 const updateIssue = async (req, res) => {
   const issue = await findIssue(req.params.id);
 
   if (!issue) {
     return notFound(res, `No issue with id ${req.params.id}`);
+  }
+
+  if (issue.userId !== req.user.id) {
+    return forbidden(res, 'You can only change your own issues');
   }
 
   const { title, description, category, status } = req.body || {};
@@ -84,12 +90,16 @@ const updateIssue = async (req, res) => {
 };
 
 // DELETE /issues/:id
-// 404 if not found, 204 with no body once removed
+// 404 if not found, 403 if the issue belongs to someone else, 204 with no body once removed
 const deleteIssue = async (req, res) => {
   const issue = await findIssue(req.params.id);
 
   if (!issue) {
     return notFound(res, `No issue with id ${req.params.id}`);
+  }
+
+  if (issue.userId !== req.user.id) {
+    return forbidden(res, 'You can only delete your own issues');
   }
 
   await issue.destroy();

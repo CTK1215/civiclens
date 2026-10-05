@@ -1,5 +1,6 @@
 const express = require('express');
 
+const { requireAuth } = require('../middleware/auth');
 const {
   getAllIssues,
   getIssueById,
@@ -10,10 +11,11 @@ const {
 
 const router = express.Router();
 
+// Reading is public. Changing issues needs a logged-in user.
 router.get('/', getAllIssues);
 router.get('/:id', getIssueById);
-router.post('/', createIssue);
-router.put('/:id', updateIssue);
-router.delete('/:id', deleteIssue);
+router.post('/', requireAuth, createIssue);
+router.put('/:id', requireAuth, updateIssue);
+router.delete('/:id', requireAuth, deleteIssue);
 
 module.exports = router;

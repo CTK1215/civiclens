@@ -2,7 +2,14 @@ require('dotenv').config();
 
 const app = require('./src/app');
 const sequelize = require('./src/config/database');
-require('./src/models/Issue'); // loads the model so sync() creates its table
+require('./src/models/Issue'); // loads the models so sync() creates their tables
+require('./src/models/User');
+
+// Tokens are signed with this secret. Without it, anyone could forge a login.
+if (!process.env.JWT_SECRET) {
+  console.error('JWT_SECRET is not set. Add it to backend/.env');
+  process.exit(1);
+}
 
 const PORT = process.env.PORT || 5000;
 const HOST = process.env.HOST || '127.0.0.1';

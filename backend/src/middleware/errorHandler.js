@@ -10,6 +10,10 @@ function notFound(res, message) {
   return res.status(404).json({ error: message });
 }
 
+function forbidden(res, message) {
+  return res.status(403).json({ error: message });
+}
+
 // Express sends anything a route throws, or passes to next(err), here.
 // The four arguments are what make Express treat it as an error handler,
 // so `next` stays in the list even though it is not used.
@@ -23,4 +27,4 @@ function handleError(err, req, res, next) {
   res.status(500).json({ error: 'Something went wrong' });
 }
 
-module.exports = { badRequest, notFound, handleError };
+module.exports = { badRequest, notFound, forbidden, handleError };
