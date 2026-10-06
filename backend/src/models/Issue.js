@@ -12,6 +12,8 @@ const Issue = sequelize.define(
     status: { type: DataTypes.STRING, allowNull: false, defaultValue: 'open' },
     votes: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
     userId: { type: DataTypes.INTEGER, allowNull: false },
+    // Public path of the photo, like /uploads/<file>.jpg, or null when there is no photo
+    imageUrl: { type: DataTypes.STRING, allowNull: true },
   },
   {
     // Keep the Phase 1 response shape: createdAt, no updatedAt
