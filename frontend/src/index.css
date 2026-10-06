@@ -2,14 +2,191 @@
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
   color-scheme: light dark;
+
+  --bg: light-dark(#f6f8fa, #0d1117);
+  --surface: light-dark(#ffffff, #161b22);
+  --text: light-dark(#1f2328, #e6edf3);
+  --muted: light-dark(#57606a, #9198a1);
+  --border: light-dark(#d0d7de, #3d444d);
+  --accent: light-dark(#1d5fbf, #4c8dff);
+  --accent-text: #ffffff;
+  --danger: light-dark(#b3261e, #ff8a80);
+  --danger-bg: light-dark(#fff1f0, #2d1517);
 }
 
 body {
   margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+h1 {
+  font-size: 1.75rem;
+  margin: 0 0 1rem;
+}
+
+a {
+  color: var(--accent);
+}
+
+/* Top bar: brand on the left, account links on the right, wraps on phones */
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+  padding: 0.9rem 1rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+nav a {
+  text-decoration: none;
+  font-weight: 500;
+}
+
+nav a:first-child {
+  font-weight: 700;
+  color: var(--text);
+  margin-right: auto;
+}
+
+nav span {
+  color: var(--muted);
 }
 
 main {
-  max-width: 960px;
+  max-width: 720px;
   margin: 0 auto;
   padding: 2rem 1rem;
+}
+
+/* Forms: one column, labels above their inputs */
+form {
+  display: grid;
+  gap: 1rem;
+  max-width: 480px;
+}
+
+form p {
+  margin: 0;
+}
+
+form label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 500;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+form input,
+form select,
+form textarea {
+  width: 100%;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+button {
+  font: inherit;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+button[type='submit'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* Errors */
+[role='alert'] {
+  margin: 0;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--danger);
+  border-radius: 6px;
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* Issue list: each issue is a card */
+ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 0.6rem;
+}
+
+li {
+  padding: 0.85rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+li a {
+  font-weight: 600;
+}
+
+/* Issue detail */
+section > p {
+  margin: 0.5rem 0;
+}
+
+/* Photos: the full photo on the detail page, a thumbnail in the list, a preview while editing */
+.photo {
+  display: block;
+  max-width: 100%;
+  max-height: 420px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0.75rem 0;
+}
+
+.photo-preview {
+  display: block;
+  max-width: 240px;
+  margin-top: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+.thumb {
+  float: right;
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  margin-left: 0.75rem;
 }
